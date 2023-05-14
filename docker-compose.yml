@@ -14,7 +14,6 @@ services:
   db:
     image: "mongo"
     volumes:
-      - data-vol
-      - /data/db
+      - data-vol:/data/db
     ports:
       - 27017:27017

@@ -28,6 +28,20 @@ export class NotFoundError extends CustomError {
   }
 }
 
+export class UserError extends CustomError {
+  statusCode = 400;
+
+  constructor(private reason = "invalid request") {
+    super(reason);
+
+    Object.setPrototypeOf(this, NotFoundError.prototype);
+  }
+
+  serializeErrors() {
+    return [{ message: this.reason }];
+  }
+}
+
 export class DatabaseConnectionError extends CustomError {
   statusCode = 500;
   reason = "Error requesting to database";

@@ -1,4 +1,5 @@
 import { Router, Application } from "express";
+import Auth from "../Auth/AuthApi";
 
 const route = Router();
 
@@ -8,4 +9,5 @@ route.get("/", (req, res, next) => {
 
 export default (app: Application) => {
   app.use(route);
+  app.use("/v1/auth", Auth);
 };
