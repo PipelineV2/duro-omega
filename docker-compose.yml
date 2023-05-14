@@ -1,8 +1,8 @@
 services:
-  app:
+  duro:
     build:
-      context: ./src
-    container_name: main-app
+      context: .
+    container_name: duro-core
     command: npm run start
     depends_on:
       - db
@@ -14,7 +14,8 @@ services:
   db:
     image: "mongo"
     volumes:
-      - data-vol
-      - /data/db
+       - data-vol:/data/db
     ports:
       - 27017:27017
+volumes:
+  data-vol:

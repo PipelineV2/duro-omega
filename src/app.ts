@@ -1,14 +1,13 @@
-// external modules
-import express, { json, urlencoded } from "express";
+import express, { Application, json, urlencoded } from "express";
 import "express-async-errors";
 import logger from "morgan";
 import cors from "cors";
 import { NotFoundError, errorHandler } from "./common/Error";
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import { configurePassport } from "./common/PassportConfig";
+import { routes } from "./common/Routes";
 
-// internal modules
-import router from "./common/Routes";
-
-const app = express();
+const app: Application = express();
 app.set("trust proxy", true);
 
 app.use(json());
@@ -16,8 +15,11 @@ app.use(cors());
 app.use(logger("dev"));
 app.use(urlencoded({ extended: true }));
 
+const configuredPassport = configurePassport();
+app.use(configuredPassport.initialize());
+
 // Initialize routes
-router(app);
+app.use(routes);
 
 app.all("*", () => {
   throw new NotFoundError();
