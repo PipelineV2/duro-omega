@@ -2,7 +2,7 @@ import * as Joi from "joi"
 import {validationMiddlewareFactory} from "../common/util"
 
 const registerAuthSchema = Joi.object().keys({
-  name: Joi.string().min(2).required(),
+  password: Joi.string().min(6).required().alphanum(),
   email: Joi.string().email().required()
 })
 

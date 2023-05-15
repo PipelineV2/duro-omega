@@ -1,16 +1,9 @@
 import { Router } from "express";
 import { registerValidation } from "./AuthValidator";
+import AuthService from "./AuthService";
 
 const router = Router();
 
-router.post("/signup", registerValidation, (req, res, next) => {
-  try{return res.status(201).json({
-    status: true,
-    message: "sucessfully signed up"
-  });
-  } catch (err) {
-    next(err)
-  }
-});
+router.post("/signup", registerValidation, AuthService.signup);
 
 export default router;
