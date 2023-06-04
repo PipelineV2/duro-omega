@@ -1,55 +1,94 @@
 import { Request, Response, NextFunction } from "express";
-import { registerValidation, /*loginValidation, resetPasswordValidation*/ } from "./AuthValidator";
-import { ServiceProvider } from "src/Service/ServiceModel";
+import { registerValidation, loginValidation, resetPasswordValidation } from "./AuthValidator";
 //import { sendVerificationEmail, sendPasswordResetEmail } from "./EmailService";
-//import { generateAccessToken, generateRefreshToken, verifyToken } from "./JwtService";
-import { ServiceProviderDoc } from "src/ServiceProvider/ServiceProviderModel";
+import JwtService from "../common/JtwtService";
+import { ServiceProviderDoc, ServiceProvider } from "../ServiceProvider/ServiceProviderModel";
+import bcrypt from "bcrypt";
 
 class AuthService {
-  public signup(req: Request, res: Response, next: NextFunction): void {
+  public async signup(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Implement signup logic
-      const user: ServiceProviderDoc = req.body;
-      
+      const { name, email, password } = req.body;
+  
+      // Check if user already exists
+      const existingUser = await ServiceProvider.findOne({ email });
+      if (existingUser) {
+        res.status(409).json({
+          status: false,
+          message: "User already exists",
+        });
+        return;
+      }
+  
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
       // Validate user input
-      registerValidation(req, res, () => {
-        // Process signup logic here
-        // Send verification email
-        //sendVerificationEmail(user.email);
-        
+      registerValidation(req, res, async () => {
+        // Save the user to the database
+        const createdUser = await ServiceProvider.create({
+          name,
+          email,
+          hashedPassword
+        });
+  
         res.status(201).json({
           status: true,
           message: "Successfully signed up. Please check your email for verification.",
+          user: createdUser,
         });
       });
     } catch (err) {
       next(err);
     }
   }
+  
+public login(req: Request, res: Response, next: NextFunction): void {
+  try {
+    // Implement login logic
+    const { email, password } = req.body;
 
-//   public login(req: Request, res: Response, next: NextFunction): void {
-//     try {
-//       // Implement login logic
-//       const { email, password } = req.body;
+    // Validate user input
+    loginValidation(req, res, async () => {
+      // Authenticate user
+      const user = await ServiceProvider.findOne({ email });
+      if (!user) {
+        // Handle invalid user case
+        res.status(401).json({
+          status: false,
+          message: 'Invalid credentials',
+        });
+        return;
+      }
 
-//       // Validate user input
-//       loginValidation(req, res, () => {
-//         // Authenticate user
-//         // Generate access token and refresh token
-//         const accessToken = generateAccessToken(user);
-//         const refreshToken = generateRefreshToken(user);
-        
-//         res.json({
-//           status: true,
-//           message: "Successfully logged in.",
-//           accessToken,
-//           refreshToken,
-//         });
-//       });
-//     } catch (err) {
-//       next(err);
-//     }
-//   }
+      // Check password validity
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) {
+        // Handle invalid password case
+        res.status(401).json({
+          status: false,
+          message: 'Invalid credentials',
+        });
+        return;
+      }
+
+      // Generate access token and refresh token
+      const accessToken = JwtService.generateAccessToken(user);
+      const refreshToken = JwtService.generateRefreshToken(user);
+
+      res.json({
+        status: true,
+        message: 'Successfully logged in.',
+        accessToken,
+        refreshToken,
+      });
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
 
 //   public resetPassword(req: Request, res: Response, next: NextFunction): void {
 //     try {

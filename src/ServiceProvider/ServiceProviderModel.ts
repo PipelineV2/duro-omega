@@ -15,6 +15,7 @@ export interface ServiceProviderDoc extends mongoose.Document {
   email: string;
   phone: string | null;
   id: string;
+  password: string;
   services: ServiceDoc;
   dateCreated: Date;
   dateModified: Date;
@@ -29,7 +30,7 @@ const serviceProviderSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true },
     phone: { type: String, default: null },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: true},
     services: [
       {
         type: mongoose.Schema.Types.ObjectId,
